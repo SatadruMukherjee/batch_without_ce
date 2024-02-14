@@ -92,7 +92,7 @@ jobs:
       - name: Push-ECR
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: ${{ env.ECR_REPO_NAME }}
+          REPOSITORY: ${{ env.TF_VAR_aws_ecr_repo_name }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
