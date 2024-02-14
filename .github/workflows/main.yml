@@ -150,7 +150,7 @@ jobs:
                                       \"runtimePlatform\": {\"operatingSystemFamily\": \"LINUX\",\"cpuArchitecture\": \"X86_64\"}}" \
                         --platform-capabilities FARGATE \
                         --timeout '{"attemptDurationSeconds": 2400}' \
-                        --tags '{"Cost_Center_Name":"MCC_Ops_Tech_Licenses","Department":"PET","epi:team":"PET","epi:supported-by":"PET","epi:product_stream":"submit","epi:owner":"Jay.Kumar@episource.com","Owner_2":"satadrumukherjee.madhusudan@episource.com","epi:environment":"$TF_VAR_product_environment_tag",Name:"Mac Portal Job Definition for $TF_VAR_product_environment_tag"}' \
+                        --tags '{"Cost_Center_Name":"MCC_Ops_Tech_Licenses","Department":"PET","epi:team":"PET","epi:supported-by":"PET","epi:product_stream":"submit","epi:owner":"Jay.Kumar@episource.com","Owner_2":"satadrumukherjee.madhusudan@episource.com","epi:environment":"'"$TF_VAR_product_environment_tag"'",Name:"Mac Portal Job Definition for '"$TF_VAR_product_environment_tag"'"}' \
                         --propagate-tags \
                         --query "revision" )
           echo "new_revision=$NEW_REVISION" >> $GITHUB_ENV     
