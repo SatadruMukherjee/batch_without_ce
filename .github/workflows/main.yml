@@ -120,13 +120,11 @@ jobs:
           EXECUTION_ROLE_ARN: ${{ env.EXECUTION_ROLE_ARN }}
         shell: bash
         run: |
-          echo "ECR Image Name:  $ECR_IMAGE_NAME"
-          echo "Job Role ARN: $JOB_ROLE_ARN"
           NEW_REVISION=$(aws batch register-job-definition \
                         --job-definition-name $TF_VAR_aws_batch_job_name \
                         --type container \
                         --parameters '{"p": "None"}' \
-                        --retry-strategy '{"attempts": $TF_VAR_batch_job_retry_count,"evaluateOnExit": []}' \
+                        --retry-strategy '{"attempts": "'"$TF_VAR_batch_job_retry_count"'","evaluateOnExit": []}' \
                         --container-properties "{\"image\" :\"$ECR_IMAGE_NAME\", 
                                       \"resourceRequirements\": [{\"value\": \"$TF_VAR_aws_batch_JD_vcpu\",\"type\": \"VCPU\"},{\"value\": \"$TF_VAR_aws_batch_JD_memory\",\"type\": \"MEMORY\"}], 
                                       \"volumes\":[], 
@@ -143,7 +141,7 @@ jobs:
                                       \"fargatePlatformConfiguration\": {\"platformVersion\": \"LATEST\"}, 
                                       \"runtimePlatform\": {\"operatingSystemFamily\": \"LINUX\",\"cpuArchitecture\": \"X86_64\"}}" \
                         --platform-capabilities FARGATE \
-                        --timeout '{"attemptDurationSeconds": $TF_VAR_batch_job_execution_timeout}' \
+                        --timeout '{"attemptDurationSeconds": "'"$TF_VAR_batch_job_execution_timeout"'"}' \
                         --tags '{"Cost_Center_Name":"MCC_Ops_Tech_Licenses","Department":"PET","epi:team":"PET","epi:supported-by":"PET","epi:product_stream":"submit","epi:owner":"Jay.Kumar@episource.com","Owner_2":"satadrumukherjee.madhusudan@episource.com","epi:environment":"'"$TF_VAR_product_environment_tag"'","Name":"Mac Portal Job Definition for '"$TF_VAR_product_environment_tag"'"}' \
                         --propagate-tags \
                         --query "revision" )
