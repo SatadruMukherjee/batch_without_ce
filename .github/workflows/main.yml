@@ -21,9 +21,6 @@ jobs:
       TF_VAR_s3_FOLDER_KEY : ${{secrets.TF_s3_FOLDER_KEY}}
       TF_VAR_batch_compute_env_name : ${{secrets.TF_VAR_BATCH_COMPUTE_ENV_NAME}}
       TF_VAR_aws_batch_ecs_task_execution_policy_list : ${{secrets.TF_VAR_AWS_BATCH_ECS_TASK_EXECUTION_POLICY_LIST}}
-      TF_VAR_aws_batch_compute_env_max_vcpu : ${{secrets.TF_VAR_AWS_BATCH_COMPUTE_ENV_MAX_VCPU}}
-      TF_VAR_aws_batch_compute_env_security_groups : ${{secrets.TF_VAR_AWS_BATCH_COMPUTE_ENV_SECURITY_GROUPS}}
-      TF_VAR_aws_batch_compute_env_subnet_groups : ${{secrets.TF_VAR_AWS_BATCH_COMPUTE_ENV_SUBNET_GROUPS}}
       TF_VAR_aws_batch_job_queue_name : ${{secrets.TF_VAR_AWS_BATCH_JOB_QUEUE_NAME}}
       TF_VAR_aws_batch_job_queue_priority: ${{secrets.TF_VAR_AWS_BATCH_JOB_QUEUE_PRIORITY}}
       TF_VAR_aws_batch_job_name : ${{secrets.TF_VAR_AWS_BATCH_JOB_NAME}}
@@ -35,6 +32,7 @@ jobs:
       S3_BUCKET_REGION: ${{ secrets.S3_BUCKET_REGION}}
       TF_VAR_AWS_S3_BUCKET: ${{secrets.AWS_S3_BUCKET}}
       TF_VAR_product_environment_tag: ${{secrets.PRODUCT_ENVIRONMENT_TAG}}
+      TF_VAR_scheduler_batch_policy : ${{secrets.SCHEDULER_BATCH_POLICY}}
 
     steps:
       # Checkout the repository to the GitHub Actions runner
@@ -168,3 +166,5 @@ jobs:
           aws batch deregister-job-definition --job-definition $PREVIOUS_TO_PREVIOUS_JOB_DEFINITION
           : # cd terraform_code
           : # terraform destroy -auto-approve
+      
+          
