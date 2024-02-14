@@ -54,6 +54,15 @@ resource "aws_batch_job_definition" "batch_job" {
     executionRoleArn = aws_iam_role.aws_ecs_task_execution_role.arn
   }
   )
+
+  retry_strategy {
+    attempts = 3
+  }
+
+  timeout {
+    attempt_duration_seconds = 2400
+  }
+
   tags = {
     Cost_Center_Name     = "MCC_Ops_Tech_Licenses"
     Department           = "PET"
