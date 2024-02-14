@@ -1,6 +1,6 @@
 name: "Terraform"
 
-#on: [push]
+on: [push]
 
 
 jobs:
@@ -33,6 +33,8 @@ jobs:
       TF_VAR_AWS_S3_BUCKET: ${{secrets.AWS_S3_BUCKET}}
       TF_VAR_product_environment_tag: ${{secrets.PRODUCT_ENVIRONMENT_TAG}}
       TF_VAR_scheduler_batch_policy : ${{secrets.SCHEDULER_BATCH_POLICY}}
+      TF_VAR_batch_job_retry_count: ${{secrets.Batch_Job_Retry_Count}}
+      TF_VAR_batch_job_execution_timeout: ${{secrets.Batch_Job_Execution_Timeout}}
 
     steps:
       # Checkout the repository to the GitHub Actions runner
@@ -73,15 +75,7 @@ jobs:
           echo $(terraform output ECS_TASK_EXECUTION_ROLE)
           echo "EXECUTION_ROLE_ARN=$(terraform output ECS_TASK_EXECUTION_ROLE)" >> $GITHUB_ENV
           echo "JOB_ROLE_ARN=$(terraform output ECS_TASK_EXECUTION_ROLE)" >> $GITHUB_ENV
-          echo $(terraform output AWS_BATCH_JOB_NAME)
-          aws_batch_job_name=$(terraform output AWS_BATCH_JOB_NAME | tr -d '"')
-          ecr_repo_name=$(terraform output ECR_REPO_NAME | tr -d '"')
-          echo "JOB_NAME=${aws_batch_job_name}" >> $GITHUB_ENV
-          echo "ECR_REPO_NAME=${ecr_repo_name}" >> $GITHUB_ENV
           aws_batch_JD_vcpu_processed=$(terraform output aws_batch_JD_vcpu | tr -d '"')
-          echo "AWS_BATCH_JD_VCPU=${aws_batch_JD_vcpu_processed}" >> $GITHUB_ENV
-          aws_batch_JD_memory_processed=$(terraform output aws_batch_JD_memory | tr -d '"')
-          echo "AWS_BATCH_JD_MEMOREY=${aws_batch_JD_memory_processed}" >> $GITHUB_ENV
           
         #Configure AWS Credentials
       - name: Configure AWS credentials
@@ -113,7 +107,7 @@ jobs:
              apt-get update && apt-get install -y awscli
           fi
           REVISION=$(aws batch describe-job-definitions \
-            --job-definition-name $JOB_NAME  \
+            --job-definition-name $TF_VAR_aws_batch_job_name  \
             --status ACTIVE \
             --query "jobDefinitions[0].revision")
 
@@ -129,12 +123,12 @@ jobs:
           echo "ECR Image Name:  $ECR_IMAGE_NAME"
           echo "Job Role ARN: $JOB_ROLE_ARN"
           NEW_REVISION=$(aws batch register-job-definition \
-                        --job-definition-name $JOB_NAME \
+                        --job-definition-name $TF_VAR_aws_batch_job_name \
                         --type container \
                         --parameters '{"p": "None"}' \
-                        --retry-strategy '{"attempts": 1,"evaluateOnExit": []}' \
+                        --retry-strategy '{"attempts": $TF_VAR_batch_job_retry_count,"evaluateOnExit": []}' \
                         --container-properties "{\"image\" :\"$ECR_IMAGE_NAME\", 
-                                      \"resourceRequirements\": [{\"value\": \"$AWS_BATCH_JD_VCPU\",\"type\": \"VCPU\"},{\"value\": \"$AWS_BATCH_JD_MEMOREY\",\"type\": \"MEMORY\"}], 
+                                      \"resourceRequirements\": [{\"value\": \"$TF_VAR_aws_batch_JD_vcpu\",\"type\": \"VCPU\"},{\"value\": \"$TF_VAR_aws_batch_JD_memory\",\"type\": \"MEMORY\"}], 
                                       \"volumes\":[], 
                                       \"environment\": [{\"name\": \"env_var\",\"value\": \"Prod\"}], 
                                       \"mountPoints\": [], 
@@ -149,7 +143,7 @@ jobs:
                                       \"fargatePlatformConfiguration\": {\"platformVersion\": \"LATEST\"}, 
                                       \"runtimePlatform\": {\"operatingSystemFamily\": \"LINUX\",\"cpuArchitecture\": \"X86_64\"}}" \
                         --platform-capabilities FARGATE \
-                        --timeout '{"attemptDurationSeconds": 2400}' \
+                        --timeout '{"attemptDurationSeconds": $TF_VAR_batch_job_execution_timeout}' \
                         --tags '{"Cost_Center_Name":"MCC_Ops_Tech_Licenses","Department":"PET","epi:team":"PET","epi:supported-by":"PET","epi:product_stream":"submit","epi:owner":"Jay.Kumar@episource.com","Owner_2":"satadrumukherjee.madhusudan@episource.com","epi:environment":"'"$TF_VAR_product_environment_tag"'","Name":"Mac Portal Job Definition for '"$TF_VAR_product_environment_tag"'"}' \
                         --propagate-tags \
                         --query "revision" )
@@ -160,9 +154,9 @@ jobs:
         env:
           CURRENT_REVISION: ${{ env.revision }}
         run: |
-          OLD_JOB_DEFINITION=arn:aws:batch:$AWS_DEFAULT_REGION:825865577047:job-definition/$JOB_NAME:$CURRENT_REVISION
+          OLD_JOB_DEFINITION=arn:aws:batch:$AWS_DEFAULT_REGION:825865577047:job-definition/$TF_VAR_aws_batch_job_name:$CURRENT_REVISION
           aws batch deregister-job-definition --job-definition $OLD_JOB_DEFINITION
-          PREVIOUS_TO_PREVIOUS_JOB_DEFINITION=arn:aws:batch:$AWS_DEFAULT_REGION:825865577047:job-definition/$JOB_NAME:$((CURRENT_REVISION-1 ))
+          PREVIOUS_TO_PREVIOUS_JOB_DEFINITION=arn:aws:batch:$AWS_DEFAULT_REGION:825865577047:job-definition/$TF_VAR_aws_batch_job_name:$((CURRENT_REVISION-1 ))
           aws batch deregister-job-definition --job-definition $PREVIOUS_TO_PREVIOUS_JOB_DEFINITION
           : # cd terraform_code
           : # terraform destroy -auto-approve
