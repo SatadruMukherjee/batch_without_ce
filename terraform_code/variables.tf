@@ -92,3 +92,15 @@ variable product_environment_tag {
   type        = string
   description = "AWS Env"
 }
+
+
+
+variable batch_job_execution_timeout {
+  type        = string
+  description = "Batch Job Timeout Time"
+}
+
+variable batch_job_retry_count {
+  type        = string
+  description = "No. of retires"
+}
