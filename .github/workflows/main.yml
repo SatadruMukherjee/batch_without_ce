@@ -1,6 +1,6 @@
 name: "Terraform"
 
-on: [push]
+#on: [push]
 
 
 jobs:
@@ -75,7 +75,6 @@ jobs:
           echo $(terraform output ECS_TASK_EXECUTION_ROLE)
           echo "EXECUTION_ROLE_ARN=$(terraform output ECS_TASK_EXECUTION_ROLE)" >> $GITHUB_ENV
           echo "JOB_ROLE_ARN=$(terraform output ECS_TASK_EXECUTION_ROLE)" >> $GITHUB_ENV
-          aws_batch_JD_vcpu_processed=$(terraform output aws_batch_JD_vcpu | tr -d '"')
           
         #Configure AWS Credentials
       - name: Configure AWS credentials
